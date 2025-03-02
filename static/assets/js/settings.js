@@ -223,7 +223,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  resetButton.addEventListener("click", () => {
+ function toggleConf() {
+  var confCheck = localStorage.getItem("leaveConfirmation")
+  if (confCheck !== 'enabled') {
+    localStorage.setItem('leaveConfirmation', 'enabled')
+  } else {
+    localStorage.setItem('leaveConfirmation', 'disabled')
+  }
+  window.location.reload();
+}
+resetButton.addEventListener("click", () => {
     localStorage.removeItem("backgroundImage");
     document.body.style.backgroundImage = "url('default-background.jpg')";
     window.location.reload();
