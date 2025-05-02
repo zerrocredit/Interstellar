@@ -11,17 +11,27 @@ const userKey = new URL(location).searchParams.get("userkey");
 self.dynamic = dynamic;
 
 self.addEventListener("fetch", event => {
-  event.respondWith(
-    (async () => {
-      if (await dynamic.route(event)) {
-        return await dynamic.fetch(event);
-      }
+  event.respondWith((async () => {
+    // First, let Dynamic handle its routes:
+    if (await dynamic.route(event)) {
+      return await dynamic.fetch(event);
+    }
 
-      if (event.request.url.startsWith(`${location.origin}/a/`)) {
+    // Then intercept our /a/ prefix with uv.fetch, wrapped in try/catch:
+    if (event.request.url.startsWith(`${location.origin}/a/`)) {
+      try {
         return await uv.fetch(event);
+      } catch (err) {
+        console.error("uv.fetch failed:", err);
+        return new Response("Proxy error", {
+          status: 502,
+          statusText: "Bad Gateway",
+          headers: { "Content-Type": "text/plain" }
+        });
       }
+    }
 
-      return await fetch(event.request);
-    })(),
-  );
+    // Fallback to a normal fetch for everything else:
+    return await fetch(event.request);
+  })());
 });
